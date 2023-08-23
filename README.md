@@ -19,3 +19,4 @@ To use EditThemePlugin, all you have to do is load the class, then call the clas
   dpg.destroy_context()
   exit()
 ```
+Files are storeed locally, in a folder called "themes". Default theme is "themes/default.ini". The program will create the default on start up.
