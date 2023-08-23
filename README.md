@@ -21,3 +21,5 @@ To use EditThemePlugin, all you have to do is load the class, then call the clas
 ```
 Files are storeed locally, in a folder called "themes". Default theme is "themes/default.ini". The program will create the default on start up.
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/8b0adc9f-7b59-4bec-bc95-5a9150afb4ef)
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/aaf1287e-d092-48d3-94e0-3f9251e8da84)
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/a8cb2c2c-9c78-46ab-89a9-36aa3f62cc3c)
