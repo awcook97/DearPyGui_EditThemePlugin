@@ -23,3 +23,21 @@ Files are storeed locally, in a folder called "themes". Default theme is "themes
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/8b0adc9f-7b59-4bec-bc95-5a9150afb4ef)
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/aaf1287e-d092-48d3-94e0-3f9251e8da84)
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/a8cb2c2c-9c78-46ab-89a9-36aa3f62cc3c)
+
+Recently added ChooseFontsPlugin.py
+Have your users choose any font they want for readability
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/c6110e5c-3312-4747-9fa8-1d96fcdb55cd)
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/aba14839-7ecf-4047-843e-f07af0557e9f)
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/69068f50-3987-41c0-9996-d93aab159bf4)
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/125441f1-f591-40ad-9880-8a7ae7e29acb)
+To use:
+```
+  from ChooseFontsPlugin import ChooseFontsPlugin
+  from EditThemePlugin import EditThemePlugin
+  ...
+  with dpg.menu_bar():
+    myFonts = ChooseFontsPlugin()
+    myTheme = EditThemePlugin()
+```
+Integrates perfectly with EditThemePlugin
+You can also set a variable to the plugins if something goes wrong, you'll be able to pause the script and see what the variables are at.
