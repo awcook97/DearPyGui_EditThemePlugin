@@ -1,8 +1,8 @@
 import dearpygui.dearpygui as dpg
 import os
-import ctypes
+#import ctypes
 # Include the following code before showing the viewport/calling `dearpygui.dearpygui.show_viewport`.
-ctypes.windll.shcore.SetProcessDpiAwareness(2)
+#ctypes.windll.shcore.SetProcessDpiAwareness(2)
 class ChooseFontsPlugin():
 
 	def __init__(self):
@@ -35,28 +35,41 @@ class ChooseFontsPlugin():
 		with open('Fonts/USERSIZE', 'r') as f:
 			try: self.userSize = int(f.read())
 			except: self.userSize = 16
-			if not self.userSize: self.userSize = self.ignore
+			if not self.userSize: self.userSize = 16
 		with open('Fonts/USERSCALE', 'r') as f:
 			try: self.userScale = float(f.read())
 			except: self.userScale = 1
 			if not self.userScale: self.userScale = 1
+		self.fontDict["YOUR FONTS"] = None
 		for filename in os.listdir('Fonts'):
 			if filename.endswith((".ttf","otf")):
 				self.fontDict[filename] = f"Fonts/{filename}"
-				with dpg.font(self.fontDict[filename], 16, parent=self.font_registry):
+				with dpg.font(self.fontDict[filename], 16, parent=self.font_registry) as f:
 					dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
 					dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic)
+					dpg.add_font_range(0x0, 0xF)
+					dpg.add_font_range(0x00, 0xFF)
+					dpg.add_font_range(0x000, 0xFFF)
+					dpg.add_font_range(0x0000, 0xFFFF)
+				dpg.bind_font(f)
+		self.fontDict["WINDOWS FONTS"] = None
+		try:
+			for filename in os.listdir('C:\\Windows\\Fonts'):
+				if filename.endswith((".ttf","otf")):
+					self.fontDict[filename] = f"C:\\Windows\\Fonts\\{filename}"
+		except:
+			self.fontDict.pop("WINDOWS FONTS")
 		if len(self.fontDict) > 0:
-			
 			if self.userFont in self.fontDict: 
 				dpg.add_font(self.fontDict[self.userFont], size=self.userSize, parent=self.font_registry, tag="fntCFPNewFont")
+				dpg.add_font_chars([0x2013,0x2014,0x2015,0x2017,0x2018,0x2019,0x201A,0x201B,0x201C,0x201D,0x201E,0x2020,0x2021,0x2022,0x2026,0x2030,0x2032,0x2033,0x2039,0x203A,0x203C,0x203E,0x2044,0x204A], parent="fntCFPNewFont")
 				dpg.bind_font("fntCFPNewFont")
 
 
 	def create_font_window(self):
-		with dpg.window(label="Font Menu", width=400, height=400, show=False, tag="winCFPFontWindow", ):
+		with dpg.window(label="Font Menu", width=400, height=400, show=False, tag="winCFPFontWindow", pos=(int(dpg.get_viewport_width()/2 - 200), int(dpg.get_viewport_height() / 2 - 200))):
 			with dpg.child_window(autosize_x=True, height=-120):
-				dpg.add_text("This is the font window. To use it, find your Fonts folder, and put in any .rtf or .otf font, and they will show up here.", wrap=0)
+				dpg.add_text("This is the font window. To use it, find your Fonts folder, and put in any .ttf or .otf font, and they will show up here.", wrap=0)
 				dpg.add_text("Whatever font you choose will be applied to the whole application. Sometimes it's best to close and reopen the application after setting a font, in case things get weird.", wrap=0)
 				dpg.add_combo(list(self.fontDict.keys()), label="Font Type", callback=lambda:self.build_fonts(), tag="cmbCFPFontType")
 				dpg.add_input_int(label="Size", default_value=self.userSize, callback=lambda:self.build_fonts(), tag="intCFPSize")
@@ -87,12 +100,22 @@ class ChooseFontsPlugin():
 		self.userFont = dpg.get_value("cmbCFPFontType")
 		self.userSize= dpg.get_value("intCFPSize")
 		if self.userFont not in self.fontDict: return
-		
-		if dpg.does_item_exist("fntCFPNewFont"): dpg.delete_item("fntCFPNewFont")
-		newFont = dpg.add_font(self.fontDict[self.userFont], size=self.userSize, parent=self.font_registry, tag="fntCFPNewFont")
-		dpg.bind_font(newFont)
-		self.userScale = float(dpg.get_value("slideCFPFontScale"))
-		dpg.set_global_font_scale(self.userScale)
+		if not self.fontDict[self.userFont]: return
+		try:
+			if dpg.does_item_exist("fntCFPNewFont"): dpg.delete_item("fntCFPNewFont")
+			newFont = dpg.add_font(self.fontDict[self.userFont], size=self.userSize, parent=self.font_registry, tag="fntCFPNewFont")
+			dpg.add_font_range_hint(dpg.mvFontRangeHint_Default, parent="fntCFPNewFont")
+			dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic, parent="fntCFPNewFont")
+			dpg.add_font_chars([0x2013,0x2014,0x2015,0x2017,0x2018,0x2019,0x201A,0x201B,0x201C,0x201D,0x201E,0x2020,0x2021,0x2022,0x2026,0x2030,0x2032,0x2033,0x2039,0x203A,0x203C,0x203E,0x2044,0x204A], parent="fntCFPNewFont")
+			dpg.add_font_range(0x0, 0xF, parent="fntCFPNewFont")
+			dpg.add_font_range(0x00, 0xFF, parent="fntCFPNewFont")
+			dpg.add_font_range(0x000, 0xFFF, parent="fntCFPNewFont")
+			dpg.add_font_range(0x0000, 0xFFFF, parent="fntCFPNewFont")
+			dpg.bind_font(newFont)
+			self.userScale = float(dpg.get_value("slideCFPFontScale"))
+			dpg.set_global_font_scale(self.userScale)
+		except Exception as e:
+			print(e)
 
 	def save_fonts(self):
 		with open('Fonts/USERFONT', 'w') as f:
@@ -101,34 +124,39 @@ class ChooseFontsPlugin():
 			f.write(str(self.userSize))
 		with open('Fonts/USERSCALE', 'w') as f:
 			f.write(str(self.userScale))
+		dpg.configure_item("winCFPFontWindow", show=False)
 
 if __name__ == "__main__":
-	from EditThemePlugin import EditThemePlugin
 	dpg.create_context()
 	dpg.create_viewport(title='Custom Title', width=1200, height=800)
-	with dpg.window(tag="main2"):
-		with dpg.child_window():
-			dpg.add_text("This is text")
-			dpg.add_button(tag="This is a button", label="THIS IS A BUTTON")
-			dpg.add_checkbox(label="Check Box")
-			with dpg.child_window(autosize_x=True, autosize_y=True):
-				with dpg.tab_bar():
-					with dpg.tab(label="THIS IS A TAB"):
-						with dpg.tree_node(label="THIS IS A TREE NODE"):
-							randListOfStuff = ['THIS', 'IS', 'A', 'LIST']
-							dpg.add_combo(randListOfStuff)
-							dpg.add_listbox(randListOfStuff)
-	with dpg.viewport_menu_bar():
-		with dpg.menu(label="Tools"):
-			dpg.add_menu_item(label="Show About", 			callback=lambda:dpg.show_tool(dpg.mvTool_About))
-			dpg.add_menu_item(label="Show Metrics", 		callback=lambda:dpg.show_tool(dpg.mvTool_Metrics))
-			dpg.add_menu_item(label="Show Documentation", 	callback=lambda:dpg.show_tool(dpg.mvTool_Doc))
-			dpg.add_menu_item(label="Show Debug", 			callback=lambda:dpg.show_tool(dpg.mvTool_Debug))
-			dpg.add_menu_item(label="Show Style Editor", 	callback=lambda:dpg.show_tool(dpg.mvTool_Style))
-			dpg.add_menu_item(label="Show Font Manager", 	callback=lambda:dpg.show_tool(dpg.mvTool_Font))
-			dpg.add_menu_item(label="Show Item Registry", 	callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
-		#myEditTheme = EditThemePlugin()
-		myFonts = ChooseFontsPlugin()
+	#from EditThemePlugin import EditThemePlugin
+	dpg.show_debug()
+	try:
+		with dpg.window(tag="main2"):
+			with dpg.child_window():
+				dpg.add_text("This is text")
+				dpg.add_button(tag="This is a button", label="THIS IS A BUTTON")
+				dpg.add_checkbox(label="Check Box")
+				with dpg.child_window(autosize_x=True, autosize_y=True):
+					with dpg.tab_bar():
+						with dpg.tab(label="THIS IS A TAB"):
+							with dpg.tree_node(label="THIS IS A TREE NODE"):
+								randListOfStuff = ['THIS', 'IS', 'A', 'LIST']
+								dpg.add_combo(randListOfStuff)
+								dpg.add_listbox(randListOfStuff)
+		with dpg.viewport_menu_bar():
+			with dpg.menu(label="Tools"):
+				dpg.add_menu_item(label="Show About", 			callback=lambda:dpg.show_tool(dpg.mvTool_About))
+				dpg.add_menu_item(label="Show Metrics", 		callback=lambda:dpg.show_tool(dpg.mvTool_Metrics))
+				dpg.add_menu_item(label="Show Documentation", 	callback=lambda:dpg.show_tool(dpg.mvTool_Doc))
+				dpg.add_menu_item(label="Show Debug", 			callback=lambda:dpg.show_tool(dpg.mvTool_Debug))
+				dpg.add_menu_item(label="Show Style Editor", 	callback=lambda:dpg.show_tool(dpg.mvTool_Style))
+				dpg.add_menu_item(label="Show Font Manager", 	callback=lambda:dpg.show_tool(dpg.mvTool_Font))
+				dpg.add_menu_item(label="Show Item Registry", 	callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
+			#myEditTheme = EditThemePlugin()
+			myFonts = ChooseFontsPlugin()
+	except:
+		pass
 	dpg.set_primary_window("main2", True)
 	dpg.setup_dearpygui()
 
