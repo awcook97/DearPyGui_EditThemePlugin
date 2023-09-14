@@ -26,6 +26,9 @@ Files are storeed locally, in a folder called "themes". Default theme is "themes
 
 Recently added ChooseFontsPlugin.py
 Have your users choose any font they want for readability
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/6b18d676-5ae2-4db9-9610-1e78793a4f93)
+![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/61cff4d4-8ec4-4795-a418-565aaf6989dc)
+
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/c6110e5c-3312-4747-9fa8-1d96fcdb55cd)
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/aba14839-7ecf-4047-843e-f07af0557e9f)
 ![image](https://github.com/awcook97/DearPyGui_EditThemePlugin/assets/8891546/69068f50-3987-41c0-9996-d93aab159bf4)
