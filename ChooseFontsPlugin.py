@@ -102,7 +102,6 @@ class ChooseFontsPlugin():
                     dpg.add_font_range(0x00, 0xFF)
                     dpg.add_font_range(0x000, 0xFFF)
                     dpg.add_font_range(0x0000, 0xFFFF)
-                dpg.bind_font(f)
         self.fontDict["WINDOWS FONTS"] = None
         try:
             for filename in os.listdir('C:\\Windows\\Fonts'):
