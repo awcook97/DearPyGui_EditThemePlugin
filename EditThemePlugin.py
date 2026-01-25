@@ -115,6 +115,7 @@ class EditThemePlugin():
         dpg.add_menu_item(label="Save Theme", callback=lambda: dpg.configure_item("saveThemeFileSelector", show=True), parent=pluginMenu)
 
     def editTheme(self):
+        """Create the theme editor window with color editing controls for all theme colors."""
         dpg.add_window(tag="editThemeWindow", show=False, autosize=True, no_title_bar=True, max_size=[1080,720])
         dpg.add_button(parent="editThemeWindow", label="Close", callback=lambda: dpg.configure_item("editThemeWindow", show=False))
         dpg.add_button(label="Load Theme", callback=lambda: dpg.configure_item("loadThemeFileSelector", show=True), parent="editThemeWindow")
@@ -255,7 +256,8 @@ class EditThemePlugin():
         ]
 
 def doNothing(*args):
-        return
+    """Placeholder callback function for canceled file dialogs."""
+    return
 
 if __name__=="__main__":
     dpg.create_context()
