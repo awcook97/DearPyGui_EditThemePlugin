@@ -40,7 +40,7 @@ class EditThemePlugin():
     def createTheme(self):
         """Create and bind a theme with all configured colors."""
         with dpg.theme_component(dpg.mvAll, parent="glob"):
-            self.parse_color_operation('dpg.add_theme_color(dpg.[VARGOESHERE], self.getThemeColor("[VARGOESHERE]"), category=dpg.mvThemeCat_Core)')
+            self._add_theme_colors()
         dpg.bind_theme("glob")
 
     def createDefaultTheme(self):
@@ -116,12 +116,14 @@ class EditThemePlugin():
 
     def editTheme(self):
         """Create the theme editor window with color editing controls for all theme colors."""
-        dpg.add_window(tag="editThemeWindow", show=False, autosize=True, no_title_bar=True, max_size=[1080,720])
-        dpg.add_button(parent="editThemeWindow", label="Close", callback=lambda: dpg.configure_item("editThemeWindow", show=False))
-        dpg.add_button(label="Load Theme", callback=lambda: dpg.configure_item("loadThemeFileSelector", show=True), parent="editThemeWindow")
-        dpg.add_button(label="Save Theme", callback=lambda: dpg.configure_item("saveThemeFileSelector", show=True), parent="editThemeWindow")
-        myEditVar = """dpg.add_color_edit(self.getThemeColor("[VARGOESHERE]"), source=self.confParser['Theme']["[VARGOESHERE]"], display_type=dpg.mvColorEdit_uint8, alpha_bar=True, alpha_preview=dpg.mvColorEdit_AlphaPreviewHalf, tag="colEdit[VARGOESHERE]", parent='editThemeWindow', label='[VARGOESHERE]', callback=lambda: dpg.add_theme_color(dpg.[VARGOESHERE], dpg.get_value("colEdit[VARGOESHERE]"), parent=dpg.add_theme_component(dpg.mvAll, parent="glob"))- 0 if not dpg.bind_theme("glob") else 0)"""
-        self.parse_color_operation(myEditVar)
+        dpg.add_window(tag="editThemeWindow", show=False, autosize=True, no_title_bar=True, max_size=[1080, 720])
+        dpg.add_button(parent="editThemeWindow", label="Close", callback=self._close_edit_window)
+        dpg.add_button(label="Load Theme", callback=self._show_load_dialog, parent="editThemeWindow")
+        dpg.add_button(label="Save Theme", callback=self._show_save_dialog, parent="editThemeWindow")
+        
+        # Create color editors for each theme color
+        for color_name in self.theColors:
+            self._create_color_editor(color_name)
     
     def loadAll(self, a=None, sentFileDict=None):
         try:
@@ -156,8 +158,7 @@ class EditThemePlugin():
         if "file_path_name" not in b:
             return
         try:
-            saveConf = "self.confParser['Theme']['[VARGOESHERE]']=str(dpg.get_value('colEdit[VARGOESHERE]'))"
-            self.parse_color_operation(saveConf)
+            self._save_theme_colors()
             with open(b["file_path_name"], 'w') as f:
                 self.confParser.write(f, True)
         except Exception as e:
@@ -177,23 +178,78 @@ class EditThemePlugin():
             return (255, 255, 255, 255)
 
 
-    def parse_color_operation(self, operation: str):
-        """Write operation like this:
-
-        Args:
-            operation (str): 'dpg.add_theme_color(dpg.[VARGOESHERE],        self.getThemeColor("[VARGOESHERE]"),            category=dpg.mvThemeCat_Core)'
-        
-        Note: Uses exec() for dynamic code execution. The color names are sourced from 
-        self.theColors list which is a static, controlled list, limiting the security surface.
-        """
-        for c in self.theColors:
-            newVar = operation
-            newVar = newVar.replace("[VARGOESHERE]", c)
+    def _add_theme_colors(self):
+        """Add theme colors using DearPyGui API directly, avoiding exec()."""
+        for color_name in self.theColors:
             try:
-                exec(newVar)
+                color_constant = getattr(dpg, color_name, None)
+                if color_constant is None:
+                    continue
+                color_value = self.getThemeColor(color_name)
+                dpg.add_theme_color(color_constant, color_value, category=dpg.mvThemeCat_Core)
             except Exception as e:
-                print(f"Error executing color operation for {c}: {e}")
-        return
+                print(f"Error adding theme color for {color_name}: {e}")
+
+    def _save_theme_colors(self):
+        """Save current theme colors from color edit widgets to config."""
+        for color_name in self.theColors:
+            try:
+                widget_id = f"colEdit{color_name}"
+                if dpg.does_item_exist(widget_id):
+                    value = dpg.get_value(widget_id)
+                    if "Theme" not in self.confParser:
+                        self.confParser["Theme"] = {}
+                    self.confParser["Theme"][color_name] = str(value)
+            except Exception as e:
+                print(f"Error saving theme color for {color_name}: {e}")
+
+    def _create_color_editor(self, color_name):
+        """Create a color editor widget for a specific theme color."""
+        try:
+            color_value = self.getThemeColor(color_name)
+            tag = f"colEdit{color_name}"
+            
+            def on_color_change():
+                """Callback when color is changed."""
+                try:
+                    color_constant = getattr(dpg, color_name, None)
+                    if color_constant is None:
+                        return
+                    new_value = dpg.get_value(tag)
+                    dpg.add_theme_color(
+                        color_constant,
+                        new_value,
+                        parent=dpg.add_theme_component(dpg.mvAll, parent="glob")
+                    )
+                    dpg.bind_theme("glob")
+                except Exception as e:
+                    print(f"Error updating color {color_name}: {e}")
+            
+            dpg.add_color_edit(
+                color_value,
+                source=self.confParser['Theme'].get(color_name, "255, 255, 255, 255"),
+                display_type=dpg.mvColorEdit_uint8,
+                alpha_bar=True,
+                alpha_preview=dpg.mvColorEdit_AlphaPreviewHalf,
+                tag=tag,
+                parent='editThemeWindow',
+                label=color_name,
+                callback=on_color_change
+            )
+        except Exception as e:
+            print(f"Error creating color editor for {color_name}: {e}")
+
+    def _close_edit_window(self):
+        """Close the edit theme window."""
+        dpg.configure_item("editThemeWindow", show=False)
+
+    def _show_load_dialog(self):
+        """Show the load theme file dialog."""
+        dpg.configure_item("loadThemeFileSelector", show=True)
+
+    def _show_save_dialog(self):
+        """Show the save theme file dialog."""
+        dpg.configure_item("saveThemeFileSelector", show=True)
 
 
     def all_saved_colors(self):

@@ -93,7 +93,7 @@ class ChooseFontsPlugin():
                 self.userScale = 1
         self.fontDict["YOUR FONTS"] = None
         for filename in os.listdir('Fonts'):
-            if filename.endswith((".ttf", "otf")):
+            if filename.lower().endswith((".ttf", ".otf")):
                 self.fontDict[filename] = f"Fonts/{filename}"
                 with dpg.font(self.fontDict[filename], 16, parent=self.font_registry) as f:
                     dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
@@ -105,7 +105,7 @@ class ChooseFontsPlugin():
         self.fontDict["WINDOWS FONTS"] = None
         try:
             for filename in os.listdir('C:\\Windows\\Fonts'):
-                if filename.endswith((".ttf", "otf")):
+                if filename.lower().endswith((".ttf", ".otf")):
                     self.fontDict[filename] = f"C:\\Windows\\Fonts\\{filename}"
         except FileNotFoundError:
             logger.debug("Windows Fonts directory not found. Skipping system fonts.")
@@ -143,9 +143,9 @@ class ChooseFontsPlugin():
                 dpg.add_text("the quick brown fox jumped over the lazy dog", wrap=0)
                 dpg.add_text("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG", wrap=0)
             with dpg.group(horizontal=True):
-                dpg.add_button(label="Close", callback=lambda: dpg.configure_item("winCFPFontWindow", show=False))
+                dpg.add_button(label="Close", callback=self._close_font_window)
                 dpg.add_button(label="Save", callback=self.save_fonts)
-                dpg.add_button(label="Reset to Default (Your Saves Won't Be Changed)", callback=lambda: dpg.bind_font("DEFAULT") and dpg.set_global_font_scale(1.0))
+                dpg.add_button(label="Reset to Default (Your Saves Won't Be Changed)", callback=self._reset_font_to_default)
 
     def create_font_menu(self):
         """
@@ -217,6 +217,15 @@ class ChooseFontsPlugin():
         with open('Fonts/USERSCALE', 'w') as f:
             f.write(str(self.userScale))
         dpg.configure_item("winCFPFontWindow", show=False)
+
+    def _close_font_window(self):
+        """Close the font window."""
+        dpg.configure_item("winCFPFontWindow", show=False)
+
+    def _reset_font_to_default(self):
+        """Reset font to default and reset scale to 1.0."""
+        dpg.bind_font("DEFAULT")
+        dpg.set_global_font_scale(1.0)
 
 
 if __name__ == "__main__":

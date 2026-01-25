@@ -73,6 +73,21 @@ dpg.destroy_context()
 
 The ChooseFontsPlugin integrates perfectly with EditThemePlugin. Place your custom fonts (`.ttf` or `.otf` files) in the `Fonts/` folder, and they will appear in the font selector.
 
+## Testing
+
+Run the test suite to verify the plugins work correctly:
+
+```bash
+python3 -m unittest test_plugins -v
+```
+
+The tests verify:
+- Plugin initialization and folder creation
+- Configuration file handling  
+- Color parsing and theme management
+- Font file discovery (case-insensitive .ttf/.otf detection)
+- Error handling
+
 ### Screenshots
 
 #### Theme Editor
