@@ -201,7 +201,7 @@ class ChooseFontsPlugin():
             self.userScale = float(dpg.get_value("slideCFPFontScale"))
             dpg.set_global_font_scale(self.userScale)
         except Exception as e:
-            logger.error(f"Error building font: {e}")
+            logger.exception("Error building font")
 
     def save_fonts(self):
         """
