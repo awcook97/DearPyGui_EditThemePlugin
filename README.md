@@ -12,7 +12,7 @@ A powerful theme editor and font selector plugin for [DearPyGui](https://github.
 
 ## Requirements
 
-- Python 3.8+ (Python 3.14 supported)
+- Python 3.9+ (Python 3.14 supported)
 - DearPyGui 2.1.1 or higher
 
 ## Installation
