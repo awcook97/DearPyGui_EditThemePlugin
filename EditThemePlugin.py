@@ -1,394 +1,337 @@
+"""
+EditThemePlugin — DearPyGui 2.x compatible theme editor.
+Adapted from https://github.com/awcook97/DearPyGui_EditThemePlugin
+"""
 import dearpygui.dearpygui as dpg
 import configparser
 import os
-
-class EditThemePlugin():
-	def __init__(self):
-		self.confParser = configparser.ConfigParser()
-		self._create_folders()
-		self.all_saved_colors()
-		self._create_UI()
-  
-	def _create_folders(self):
-		if not os.path.exists('themes'):
-			os.mkdir('themes')
-		if not os.path.exists('themes/default.ini'):
-			self.createDefaultTheme()
-  
-	def _create_UI(self):
-		dpg.add_theme(tag="glob")
-		self.createMenu()
-		self.loadAll(None, {"file_path_name":'themes/default.ini'})
-
-	def __str__(self) -> str:
-		return "glob"
-
-	def createTheme(self):
-		with dpg.theme_component(dpg.mvAll, parent="glob"):
-			self.parse_color_operation('dpg.add_theme_color(dpg.[VARGOESHERE],		self.getThemeColor("[VARGOESHERE]"),			category=dpg.mvThemeCat_Core)')
-		dpg.bind_theme("glob")
-
-	def createDefaultTheme(self):
-		self.confParser['Theme'] = {}
-		self.confParser['Theme']['mvthemecol_text'] = "255.0, 254.99607849121094, 254.99607849121094, 255.0"
-		self.confParser['Theme']['mvthemecol_tabactive'] = "177.51373291015625, 26.478431701660156, 26.48627471923828, 255.0"
-		self.confParser['Theme']['mvthemecol_slidergrabactive'] = "249.0, 66.0, 72.062744140625, 255.0"
-		self.confParser['Theme']['mvthemecol_textdisabled'] = "127.0, 127.0, 127.0, 255.0"
-		self.confParser['Theme']['mvthemecol_tabunfocused'] = "53.53333282470703, 22.77254867553711, 22.776470184326172, 247.0"
-		self.confParser['Theme']['mvthemecol_button'] = "123.97647094726562, 0.6823529601097107, 0.6901960968971252, 255.0"
-		self.confParser['Theme']['mvthemecol_windowbg'] = "12.678431510925293, 12.607843399047852, 12.607843399047852, 239.0"
-		self.confParser['Theme']['mvthemecol_tabunfocusedactive'] = "107.0, 35.0, 35.00392150878906, 255.0"
-		self.confParser['Theme']['mvthemecol_buttonhovered'] = "231.04705810546875, 17.870588302612305, 24.937253952026367, 255.0"
-		self.confParser['Theme']['mvthemecol_childbg'] = "0.0, 0.0, 0.0, 26.764705657958984"
-		self.confParser['Theme']['mvthemecol_dockingpreview'] = "249.0, 66.0, 66.00784301757812, 178.0"
-		self.confParser['Theme']['mvthemecol_buttonactive'] = "249.0, 15.0, 15.011764526367188, 255.0"
-		self.confParser['Theme']['mvthemecol_border'] = "109.0, 109.0, 127.0, 127.0"
-		self.confParser['Theme']['mvthemecol_dockingemptybg'] = "51.0, 51.0, 51.0, 255.0"
-		self.confParser['Theme']['mvthemecol_header'] = "249.0, 66.0, 66.00784301757812, 79.0"
-		self.confParser['Theme']['mvthemecol_popupbg'] = "20.0, 20.0, 20.0, 239.0"
-		self.confParser['Theme']['mvthemecol_plotlines'] = "155.0, 155.0, 155.0, 255.0"
-		self.confParser['Theme']['mvthemecol_headerhovered'] = "249.0, 66.0, 66.00784301757812, 204.0"
-		self.confParser['Theme']['mvthemecol_bordershadow'] = "0.0, 0.0, 0.0, 0.0"
-		self.confParser['Theme']['mvthemecol_plotlineshovered'] = "255.0, 109.0, 89.0, 255.0"
-		self.confParser['Theme']['mvthemecol_headeractive'] = "249.0, 66.0, 66.00784301757812, 255.0"
-		self.confParser['Theme']['mvthemecol_framebg'] = "82.19215393066406, 83.32157135009766, 84.52941131591797, 137.0"
-		self.confParser['Theme']['mvthemecol_plothistogram'] = "229.0, 178.0, 0.0, 255.0"
-		self.confParser['Theme']['mvthemecol_separator'] = "109.0, 109.0, 127.0, 127.0"
-		self.confParser['Theme']['mvthemecol_framebghovered'] = "249.0, 66.0, 66.00784301757812, 102.0"
-		self.confParser['Theme']['mvthemecol_plothistogramhovered'] = "255.0, 153.0, 0.0, 255.0"
-		self.confParser['Theme']['mvthemecol_separatorhovered'] = "191.0, 24.713726043701172, 24.713726043701172, 200.0"
-		self.confParser['Theme']['mvthemecol_framebgactive'] = "255.0, 0.0, 0.0117647061124444, 195.82745361328125"
-		self.confParser['Theme']['mvthemecol_tableheaderbg'] = "48.0, 48.0, 51.0, 255.0"
-		self.confParser['Theme']['mvthemecol_separatoractive'] = "191.0, 25.0, 25.007843017578125, 255.0"
-		self.confParser['Theme']['mvthemecol_titlebg'] = "10.0, 10.0, 10.0, 255.0"
-		self.confParser['Theme']['mvthemecol_tableborderstrong'] = "79.0, 79.0, 89.0, 255.0"
-		self.confParser['Theme']['mvthemecol_resizegrip'] = "249.0, 66.0, 66.00784301757812, 51.0"
-		self.confParser['Theme']['mvthemecol_titlebgactive'] = "122.0, 40.0, 40.00392150878906, 255.0"
-		self.confParser['Theme']['mvthemecol_tableborderlight'] = "67.67058563232422, 67.67058563232422, 76.07450866699219, 255.0"
-		self.confParser['Theme']['mvthemecol_resizegriphovered'] = "249.0, 66.0, 66.00784301757812, 170.0"
-		self.confParser['Theme']['mvthemecol_titlebgcollapsed'] = "0.0, 0.0, 0.0, 130.0"
-		self.confParser['Theme']['mvthemecol_tablerowbg'] = "0.0, 0.0, 0.0, 0.0"
-		self.confParser['Theme']['mvthemecol_resizegripactive'] = "236.68235778808594, 36.61176300048828, 36.62352752685547, 242.0"
-		self.confParser['Theme']['mvthemecol_menubarbg'] = "35.0, 35.0, 35.0, 255.0"
-		self.confParser['Theme']['mvthemecol_tablerowbgalt'] = "255.0, 255.0, 255.0, 15.0"
-		self.confParser['Theme']['mvthemecol_tab'] = "147.0, 44.99607849121094, 45.00392150878906, 219.0"
-		self.confParser['Theme']['mvthemecol_scrollbarbg'] = "5.0, 5.0, 5.0, 135.0"
-		self.confParser['Theme']['mvthemecol_textselectedbg'] = "249.0, 66.0, 114.52941131591797, 89.0"
-		self.confParser['Theme']['mvthemecol_tabhovered'] = "249.0, 66.0, 66.00784301757812, 204.0"
-		self.confParser['Theme']['mvthemecol_scrollbargrab'] = "79.0, 79.0, 79.0, 255.0"
-		self.confParser['Theme']['mvthemecol_dragdroptarget'] = "255.0, 255.0, 0.0, 229.0"
-		self.confParser['Theme']['mvthemecol_scrollbargrabhovered'] = "104.0, 104.0, 104.0, 255.0"
-		self.confParser['Theme']['mvthemecol_navhighlight'] = "249.0, 66.0, 66.00784301757812, 255.0"
-		self.confParser['Theme']['mvthemecol_scrollbargrabactive'] = "130.0, 130.0, 130.0, 255.0"
-		self.confParser['Theme']['mvthemecol_navwindowinghighlight'] = "255.0, 255.0, 255.0, 178.0"
-		self.confParser['Theme']['mvthemecol_checkmark'] = "249.0, 66.0, 66.00784301757812, 255.0"
-		self.confParser['Theme']['mvthemecol_navwindowingdimbg'] = "204.0, 204.0, 204.0, 51.0"
-		self.confParser['Theme']['mvthemecol_slidergrab'] = "224.0, 60.99607849121094, 61.007843017578125, 255.0"
-		self.confParser['Theme']['mvthemecol_modalwindowdimbg'] = "204.0, 204.0, 204.0, 89.0"
-		with open('themes/default.ini', 'w') as f: 
-			self.confParser.write(f, True)
-		return
-		#with dpg.theme() as theme_id:
-		#	with dpg.theme_component(0):
-		#		dpg.add_theme_color(dpg.mvThemeCol_Text                   , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TextDisabled           , (0.50 * 255, 0.50 * 255, 0.50 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_WindowBg               , (0.06 * 255, 0.06 * 255, 0.06 * 255, 0.94 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ChildBg                , (0.00 * 255, 0.00 * 255, 0.00 * 255, 0.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_PopupBg                , (0.08 * 255, 0.08 * 255, 0.08 * 255, 0.94 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_Border                 , (0.43 * 255, 0.43 * 255, 0.50 * 255, 0.50 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_BorderShadow           , (0.00 * 255, 0.00 * 255, 0.00 * 255, 0.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_FrameBg                , (0.16 * 255, 0.29 * 255, 0.48 * 255, 0.54 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_FrameBgHovered         , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.40 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_FrameBgActive          , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.67 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TitleBg                , (0.04 * 255, 0.04 * 255, 0.04 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive          , (0.16 * 255, 0.29 * 255, 0.48 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TitleBgCollapsed       , (0.00 * 255, 0.00 * 255, 0.00 * 255, 0.51 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_MenuBarBg              , (0.14 * 255, 0.14 * 255, 0.14 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ScrollbarBg            , (0.02 * 255, 0.02 * 255, 0.02 * 255, 0.53 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ScrollbarGrab          , (0.31 * 255, 0.31 * 255, 0.31 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ScrollbarGrabHovered   , (0.41 * 255, 0.41 * 255, 0.41 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ScrollbarGrabActive    , (0.51 * 255, 0.51 * 255, 0.51 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_CheckMark              , (0.26 * 255, 0.59 * 255, 0.98 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_SliderGrab             , (0.24 * 255, 0.52 * 255, 0.88 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_SliderGrabActive       , (0.26 * 255, 0.59 * 255, 0.98 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_Button                 , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.40 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered          , (0.26 * 255, 0.59 * 255, 0.98 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ButtonActive           , (0.06 * 255, 0.53 * 255, 0.98 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_Header                 , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.31 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_HeaderHovered          , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.80 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_HeaderActive           , (0.26 * 255, 0.59 * 255, 0.98 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_Separator              , (0.43 * 255, 0.43 * 255, 0.50 * 255, 0.50 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_SeparatorHovered       , (0.10 * 255, 0.40 * 255, 0.75 * 255, 0.78 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_SeparatorActive        , (0.10 * 255, 0.40 * 255, 0.75 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ResizeGrip             , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.20 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ResizeGripHovered      , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.67 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ResizeGripActive       , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.95 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_Tab                    , (0.18 * 255, 0.35 * 255, 0.58 * 255, 0.86 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TabHovered             , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.80 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TabActive              , (0.20 * 255, 0.41 * 255, 0.68 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TabUnfocused           , (0.07 * 255, 0.10 * 255, 0.15 * 255, 0.97 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TabUnfocusedActive     , (0.14 * 255, 0.26 * 255, 0.42 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_DockingPreview         , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.70 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_DockingEmptyBg         , (0.20 * 255, 0.20 * 255, 0.20 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_PlotLines              , (0.61 * 255, 0.61 * 255, 0.61 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_PlotLinesHovered       , (1.00 * 255, 0.43 * 255, 0.35 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_PlotHistogram          , (0.90 * 255, 0.70 * 255, 0.00 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_PlotHistogramHovered   , (1.00 * 255, 0.60 * 255, 0.00 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TableHeaderBg          , (0.19 * 255, 0.19 * 255, 0.20 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TableBorderStrong      , (0.31 * 255, 0.31 * 255, 0.35 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TableBorderLight       , (0.23 * 255, 0.23 * 255, 0.25 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TableRowBg             , (0.00 * 255, 0.00 * 255, 0.00 * 255, 0.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TableRowBgAlt          , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.06 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_TextSelectedBg         , (0.26 * 255, 0.59 * 255, 0.98 * 255, 0.35 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_DragDropTarget         , (1.00 * 255, 1.00 * 255, 0.00 * 255, 0.90 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_NavHighlight           , (0.26 * 255, 0.59 * 255, 0.98 * 255, 1.00 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_NavWindowingHighlight  , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.70 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_NavWindowingDimBg      , (0.80 * 255, 0.80 * 255, 0.80 * 255, 0.20 * 255))
-		#		dpg.add_theme_color(dpg.mvThemeCol_ModalWindowDimBg       , (0.80 * 255, 0.80 * 255, 0.80 * 255, 0.35 * 255))
-		#		dpg.add_theme_color(dpg.mvPlotCol_FrameBg                 , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.07 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_PlotBg                  , (0.00 * 255, 0.00 * 255, 0.00 * 255, 0.50 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_PlotBorder              , (0.43 * 255, 0.43 * 255, 0.50 * 255, 0.50 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_LegendBg                , (0.08 * 255, 0.08 * 255, 0.08 * 255, 0.94 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_LegendBorder            , (0.43 * 255, 0.43 * 255, 0.50 * 255, 0.50 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_LegendText              , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_TitleText               , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_InlayText               , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_XAxis                   , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_XAxisGrid               , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.25 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_YAxis                   , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_YAxisGrid               , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.25 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_YAxis2                  , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_YAxisGrid2              , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.25 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_YAxis3                  , (1.00 * 255, 1.00 * 255, 1.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_YAxisGrid3              , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.25 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_Selection               , (1.00 * 255, 0.60 * 255, 0.00 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_Query                   , (0.00 * 255, 1.00 * 255, 0.44 * 255, 1.00 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvPlotCol_Crosshairs              , (1.00 * 255, 1.00 * 255, 1.00 * 255, 0.50 * 255), category=dpg.mvThemeCat_Plots)
-		#		dpg.add_theme_color(dpg.mvNodeCol_NodeBackground, (50, 50, 50, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_NodeBackgroundHovered, (75, 75, 75, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_NodeBackgroundSelected, (75, 75, 75, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_NodeOutline, (100, 100, 100, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_TitleBar, (41, 74, 122, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_TitleBarHovered, (66, 150, 250, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_TitleBarSelected, (66, 150, 250, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_Link, (61, 133, 224, 200), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_LinkHovered, (66, 150, 250, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_LinkSelected, (66, 150, 250, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_Pin, (53, 150, 250, 180), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_PinHovered, (53, 150, 250, 255), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_BoxSelector, (61, 133, 224, 30), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_BoxSelectorOutline, (61, 133, 224, 150), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_GridBackground, (40, 40, 50, 200), category=dpg.mvThemeCat_Nodes)
-		#		dpg.add_theme_color(dpg.mvNodeCol_GridLine, (200, 200, 200, 40), category=dpg.mvThemeCat_Nodes)
-		#return theme_id
-
-	def createMenu(self):
-		pluginMenu = dpg.add_menu(label="Theme")
-		self.loadTheme()
-		self.saveTheme()
-		self.editTheme()
-		dpg.add_menu_item(label="Configure Theme", callback=lambda: dpg.configure_item('editThemeWindow', show=True), parent=pluginMenu)
-		dpg.add_menu_item(label="Load Theme", callback=lambda: dpg.configure_item("loadThemeFileSelector", show=True), parent=pluginMenu)
-		dpg.add_menu_item(label="Save Theme", callback=lambda: dpg.configure_item("saveThemeFileSelector", show=True), parent=pluginMenu)
-
-	def editTheme(self):
-		dpg.add_window(tag="editThemeWindow", show=False, autosize=True, no_title_bar=True, max_size=[1080,720])
-		dpg.add_button(parent="editThemeWindow", label="Close", callback=lambda: dpg.configure_item("editThemeWindow", show=False))
-		dpg.add_button(label="Load Theme", callback=lambda: dpg.configure_item("loadThemeFileSelector", show=True), parent="editThemeWindow")
-		dpg.add_button(label="Save Theme", callback=lambda: dpg.configure_item("saveThemeFileSelector", show=True), parent="editThemeWindow")
-		myEditVar = """dpg.add_color_edit(self.getThemeColor("[VARGOESHERE]"), source=self.confParser['Theme']["[VARGOESHERE]"], display_type=dpg.mvColorEdit_uint8, alpha_bar=True, alpha_preview=dpg.mvColorEdit_AlphaPreviewHalf, tag="colEdit[VARGOESHERE]", parent='editThemeWindow', label='[VARGOESHERE]', callback=lambda: dpg.add_theme_color(dpg.[VARGOESHERE], dpg.get_value("colEdit[VARGOESHERE]"), parent=dpg.add_theme_component(dpg.mvAll, parent="glob"))- 0 if not dpg.bind_theme("glob") else 0)"""
-		#dpg.add_color_edit(self.getThemeColor("[VARGOESHERE]"), source=self.confParser['Theme']["[VARGOESHERE]"], display_type=dpg.mvColorEdit_uint8, alpha_bar=True, alpha_preview=dpg.mvColorEdit_AlphaPreviewHalf,tag="colEdit[VARGOESHERE]", parent='editThemeWindow', label='[VARGOESHERE]', callback=lambda: dpg.add_theme_color(dpg.[VARGOESHERE], dpg.get_value("colEdit[VARGOESHERE]"), parent=dpg.add_theme_component(dpg.mvAll, parent="glob"))- 0 if not dpg.bind_theme("glob") else 0)
-		self.parse_color_operation(myEditVar)
-	
-	def loadAll(self, a=None, sentFileDict=None):
-		try:
-			#self.confParser = configparser.ConfigParser()
-			self.confParser.read(sentFileDict["file_path_name"])
-			dpg.delete_item("editThemeWindow")
-			self.createTheme()
-			self.editTheme()
-			#with open("newFile.ini", 'w') as f:			self.confParser.write(f)
-		except:
-			return
-
-		
-	
-	def loadTheme(self):
-		try:
-			with dpg.file_dialog(callback=self.loadAll, directory_selector=False, width=700, height=400, default_path="themes", default_filename="default.ini", show=False, tag="loadThemeFileSelector", cancel_callback=doNothing):
-				dpg.add_file_extension(".ini")
-			pass
-		except:
-			return
-	
-	def saveTheme(self):
-		try:
-			with dpg.file_dialog(default_path="themes", default_filename=".ini",callback=self.saveAll, directory_selector=False, width=700, height=400, show=False, tag="saveThemeFileSelector", cancel_callback=doNothing):
-				dpg.add_file_extension(".ini")
-				dpg.add_button(label="save")
-		except:
-			return
-		pass
-		return
-
-	def saveAll(self, a, b):
-		#print(f"{self}, {a}, {b}")
-		if not "file_path_name" in b:
-			return
-		try:
-			#self.confParser['Theme'] = {}
-			#print(a, b, c)
-			saveConf = "self.confParser['Theme']['[VARGOESHERE]']=str(dpg.get_value('colEdit[VARGOESHERE]'))"
-			self.parse_color_operation(saveConf)
-			with open(b["file_path_name"], 'w') as f: self.confParser.write(f,True)
-		except:
-			return
-
-	def getThemeColor(self, themeCol):
-		itm = self.confParser['Theme'][themeCol]
-		#print(type(itm))
-		itm = itm.removeprefix('[')
-		itm = itm.removesuffix(']')
-		thrIntAsStr = itm
-		#print(thrIntAsStr)
-		a = thrIntAsStr.split(',')
-		#print(a[0])
-		#print((int(float(a[0].strip())),int(float(a[1].strip())),int(float(a[2].strip())),int(float(a[3].strip()))))
-		return (int(float(a[0].strip())),int(float(a[1].strip())),int(float(a[2].strip())),int(float(a[3].strip())))
-		#c = dict()
-		#i = 0
-		#for a in thrIntAsStr.split(','):
-		#	b = a.split(' * ')
-		#	#print(b)
-		#	c[str(i)] = float(b[0].strip()) * float(b[1].strip())
-		#	i += 1
-		##print(c)
-		#self.confParser['Theme'][themeCol] = f'{int(c["0"])},{int(c["1"])},{int(c["2"])},{int(c["3"])}'
-		#return (int(c["0"]),int(c["1"]),int(c["2"]),int(c["3"]))
-		#self.confParser['Theme']['mvThemeCol_ModalWindowDimBg']=dpg.get_value('colEditmvThemeCol_ModalWindowDimBg')
+import pathlib
 
 
-	def parse_color_operation(self, operation: str):
-		"""Write operation like this:
+# All themeable color constants
+THEME_COLORS = [
+    "mvThemeCol_Text",
+    "mvThemeCol_TextSelectedBg",
+    "mvThemeCol_TextDisabled",
+    "mvThemeCol_TabActive",
+    "mvThemeCol_TabUnfocused",
+    "mvThemeCol_TabUnfocusedActive",
+    "mvThemeCol_TabHovered",
+    "mvThemeCol_Tab",
+    "mvThemeCol_Button",
+    "mvThemeCol_ButtonHovered",
+    "mvThemeCol_ButtonActive",
+    "mvThemeCol_WindowBg",
+    "mvThemeCol_ChildBg",
+    "mvThemeCol_PopupBg",
+    "mvThemeCol_FrameBg",
+    "mvThemeCol_FrameBgHovered",
+    "mvThemeCol_FrameBgActive",
+    "mvThemeCol_TitleBg",
+    "mvThemeCol_TitleBgActive",
+    "mvThemeCol_TitleBgCollapsed",
+    "mvThemeCol_MenuBarBg",
+    "mvThemeCol_DockingEmptyBg",
+    "mvThemeCol_ScrollbarBg",
+    "mvThemeCol_ResizeGripActive",
+    "mvThemeCol_ScrollbarGrab",
+    "mvThemeCol_ScrollbarGrabHovered",
+    "mvThemeCol_ScrollbarGrabActive",
+    "mvThemeCol_Border",
+    "mvThemeCol_BorderShadow",
+    "mvThemeCol_SliderGrabActive",
+    "mvThemeCol_DockingPreview",
+    "mvThemeCol_Header",
+    "mvThemeCol_PlotLines",
+    "mvThemeCol_HeaderHovered",
+    "mvThemeCol_PlotLinesHovered",
+    "mvThemeCol_HeaderActive",
+    "mvThemeCol_PlotHistogram",
+    "mvThemeCol_Separator",
+    "mvThemeCol_PlotHistogramHovered",
+    "mvThemeCol_SeparatorHovered",
+    "mvThemeCol_TableHeaderBg",
+    "mvThemeCol_SeparatorActive",
+    "mvThemeCol_TableBorderStrong",
+    "mvThemeCol_ResizeGrip",
+    "mvThemeCol_TableBorderLight",
+    "mvThemeCol_ResizeGripHovered",
+    "mvThemeCol_TableRowBg",
+    "mvThemeCol_TableRowBgAlt",
+    "mvThemeCol_DragDropTarget",
+    "mvThemeCol_NavHighlight",
+    "mvThemeCol_NavWindowingHighlight",
+    "mvThemeCol_CheckMark",
+    "mvThemeCol_NavWindowingDimBg",
+    "mvThemeCol_SliderGrab",
+    "mvThemeCol_ModalWindowDimBg",
+]
 
-		Args:
-			operation (str): 'dpg.add_theme_color(dpg.[VARGOESHERE],		self.getThemeColor("[VARGOESHERE]"),			category=dpg.mvThemeCat_Core)'
-		"""
-		for c in self.theColors:
-			newVar = operation
-			newVar = newVar.replace("[VARGOESHERE]", c)
-			try:
-				#print(newVar)
-				exec(newVar)
-			except:
-				#exec(f"#print(dpg.{c})")
-				pass##print(newVar)
-		return
+
+def _do_nothing(*args):
+    pass
 
 
-	def all_saved_colors(self):
-		self.theColors = [
-			"mvThemeCol_Text",
-			"mvThemeCol_TextSelectedBg",
-			"mvThemeCol_TextDisabled",
-			"mvThemeCol_TabActive",
-			"mvThemeCol_TabUnfocused",
-			"mvThemeCol_TabUnfocusedActive",
-			"mvThemeCol_TabHovered",
-			"mvThemeCol_Tab",
-			"mvThemeCol_Button",
-			"mvThemeCol_ButtonHovered",
-			"mvThemeCol_ButtonActive",
-			"mvThemeCol_WindowBg",
-			"mvThemeCol_ChildBg",
-			"mvThemeCol_PopupBg",
-			"mvThemeCol_FrameBg",
-			"mvThemeCol_FrameBgHovered",
-			"mvThemeCol_FrameBgActive",
-			"mvThemeCol_TitleBg",
-			"mvThemeCol_TitleBgActive",
-			"mvThemeCol_TitleBgCollapsed",
-			"mvThemeCol_MenuBarBg",
-			"mvThemeCol_DockingEmptyBg",
-			"mvThemeCol_ScrollbarBg",
-			"mvThemeCol_ResizeGripActive",
-			"mvThemeCol_ScrollbarGrab",
-			"mvThemeCol_ScrollbarGrabHovered",
-			"mvThemeCol_ScrollbarGrabActive",
-			"mvThemeCol_Border",
-			"mvThemeCol_BorderShadow",
-			"mvThemeCol_SliderGrabActive",
-			"mvThemeCol_DockingPreview",
-			"mvThemeCol_Header",
-			"mvThemeCol_PlotLines",
-			"mvThemeCol_HeaderHovered",
-			"mvThemeCol_PlotLinesHovered",
-			"mvThemeCol_HeaderActive",
-			"mvThemeCol_PlotHistogram",
-			"mvThemeCol_Separator",
-			"mvThemeCol_PlotHistogramHovered",
-			"mvThemeCol_SeparatorHovered",
-			"mvThemeCol_TableHeaderBg",
-			"mvThemeCol_SeparatorActive",
-			"mvThemeCol_TableBorderStrong",
-			"mvThemeCol_ResizeGrip",
-			"mvThemeCol_TableBorderLight",
-			"mvThemeCol_ResizeGripHovered",
-			"mvThemeCol_TableRowBg",
-			"mvThemeCol_TableRowBgAlt",
-			"mvThemeCol_DragDropTarget",
-			"mvThemeCol_NavHighlight",
-			"mvThemeCol_NavWindowingHighlight",
-			"mvThemeCol_CheckMark",
-			"mvThemeCol_NavWindowingDimBg",
-			"mvThemeCol_SliderGrab",
-			"mvThemeCol_ModalWindowDimBg",
-		]
+class EditThemePlugin:
+    def __init__(self, menu_parent=None):
+        self.confParser = configparser.ConfigParser()
+        self._themes_dir = pathlib.Path(__file__).parent.parent / "themes"
+        self._create_folders()
+        self._glob_tag = "glob_theme"
+        self._create_ui(menu_parent)
 
-def doNothing(*args):
-		return
+    def _create_folders(self):
+        self._themes_dir.mkdir(parents=True, exist_ok=True)
+        default = self._themes_dir / "default.ini"
+        if not default.exists():
+            self._create_default_theme()
 
-if __name__=="__main__":
-	dpg.create_context()
-	dpg.create_viewport(title='Custom Title', width=1200, height=800)
-	with dpg.theme() as global_theme:
-		with dpg.theme_component(dpg.mvAll) as gtc:
-			dpg.add_theme_color(dpg.mvThemeCol_Text,					(0,0,0,255),						category=dpg.mvThemeCat_Core, tag="globcolor")
-	dpg.bind_theme(global_theme)
-	#dpg.add_theme(tag="glob")
-	def bind():dpg.add_theme_color(dpg.mvThemeCol_Text, dpg.get_value("ve"), parent=dpg.add_theme_component(dpg.mvAll, parent="glob"));dpg.bind_theme("glob")
-	with dpg.window(tag="main", show=False):
-		dpg.add_color_edit(parent="main",tag='ve', callback=bind)
-		dpg.add_text(dpg.get_item_info("main"), wrap=0)
-		dpg.add_text(dpg.get_app_configuration(), wrap=0)
-	with dpg.value_registry():
-		dpg.add_color_value(source="ve", tag="vete")
-	with dpg.window(tag="main2"):
-		with dpg.child_window():
-			dpg.add_text("This is text")
-			dpg.add_button(tag="This is a button", label="THIS IS A BUTTON")
-			dpg.add_checkbox(label="Check Box")
-			with dpg.child_window(autosize_x=True, autosize_y=True):
-				with dpg.tab_bar():
-					with dpg.tab(label="THIS IS A TAB"):
-						with dpg.tree_node(label="THIS IS A TREE NODE"):
-							randListOfStuff = ['THIS', 'IS', 'A', 'LIST']
-							dpg.add_combo(randListOfStuff)
-							dpg.add_listbox(randListOfStuff)
+    def _create_ui(self, menu_parent):
+        # Create the global theme
+        if dpg.does_item_exist(self._glob_tag):
+            dpg.delete_item(self._glob_tag)
 
-	with dpg.viewport_menu_bar():
-		with dpg.menu(label="Tools"):
-			dpg.add_menu_item(label="Show About", 			callback=lambda:dpg.show_tool(dpg.mvTool_About))
-			dpg.add_menu_item(label="Show Metrics", 		callback=lambda:dpg.show_tool(dpg.mvTool_Metrics))
-			dpg.add_menu_item(label="Show Documentation", 	callback=lambda:dpg.show_tool(dpg.mvTool_Doc))
-			dpg.add_menu_item(label="Show Debug", 			callback=lambda:dpg.show_tool(dpg.mvTool_Debug))
-			dpg.add_menu_item(label="Show Style Editor", 	callback=lambda:dpg.show_tool(dpg.mvTool_Style))
-			dpg.add_menu_item(label="Show Font Manager", 	callback=lambda:dpg.show_tool(dpg.mvTool_Font))
-			dpg.add_menu_item(label="Show Item Registry", 	callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
-		EditThemePlugin()
-	dpg.set_primary_window("main2", True)
-	dpg.setup_dearpygui()
+        self._create_menu(menu_parent)
+        self._load_all(sent_file=str(self._themes_dir / "default.ini"))
 
-	dpg.show_viewport()
-	dpg.start_dearpygui()
-	dpg.destroy_context()
+    def __str__(self) -> str:
+        return self._glob_tag
+
+    # ----- theme creation -----
+
+    def _apply_theme(self):
+        """Create and bind the theme from current confParser settings."""
+        if dpg.does_item_exist(self._glob_tag):
+            dpg.delete_item(self._glob_tag)
+
+        with dpg.theme(tag=self._glob_tag):
+            with dpg.theme_component(dpg.mvAll):
+                for color_name in THEME_COLORS:
+                    try:
+                        color_val = self._get_theme_color(color_name)
+                        color_const = getattr(dpg, color_name, None)
+                        if color_const is not None:
+                            dpg.add_theme_color(
+                                color_const,
+                                color_val,
+                                category=dpg.mvThemeCat_Core,
+                            )
+                    except Exception:
+                        pass
+        dpg.bind_theme(self._glob_tag)
+
+    def _create_default_theme(self):
+        self.confParser["Theme"] = {
+            "mvthemecol_text": "255.0, 254.99, 254.99, 255.0",
+            "mvthemecol_tabactive": "177.51, 26.48, 26.49, 255.0",
+            "mvthemecol_slidergrabactive": "249.0, 66.0, 72.06, 255.0",
+            "mvthemecol_textdisabled": "127.0, 127.0, 127.0, 255.0",
+            "mvthemecol_tabunfocused": "53.53, 22.77, 22.78, 247.0",
+            "mvthemecol_button": "123.98, 0.68, 0.69, 255.0",
+            "mvthemecol_windowbg": "12.68, 12.61, 12.61, 239.0",
+            "mvthemecol_tabunfocusedactive": "107.0, 35.0, 35.0, 255.0",
+            "mvthemecol_buttonhovered": "231.05, 17.87, 24.94, 255.0",
+            "mvthemecol_childbg": "0.0, 0.0, 0.0, 26.76",
+            "mvthemecol_dockingpreview": "249.0, 66.0, 66.01, 178.0",
+            "mvthemecol_buttonactive": "249.0, 15.0, 15.01, 255.0",
+            "mvthemecol_border": "109.0, 109.0, 127.0, 127.0",
+            "mvthemecol_dockingemptybg": "51.0, 51.0, 51.0, 255.0",
+            "mvthemecol_header": "249.0, 66.0, 66.01, 79.0",
+            "mvthemecol_popupbg": "20.0, 20.0, 20.0, 239.0",
+            "mvthemecol_plotlines": "155.0, 155.0, 155.0, 255.0",
+            "mvthemecol_headerhovered": "249.0, 66.0, 66.01, 204.0",
+            "mvthemecol_bordershadow": "0.0, 0.0, 0.0, 0.0",
+            "mvthemecol_plotlineshovered": "255.0, 109.0, 89.0, 255.0",
+            "mvthemecol_headeractive": "249.0, 66.0, 66.01, 255.0",
+            "mvthemecol_framebg": "82.19, 83.32, 84.53, 137.0",
+            "mvthemecol_plothistogram": "229.0, 178.0, 0.0, 255.0",
+            "mvthemecol_separator": "109.0, 109.0, 127.0, 127.0",
+            "mvthemecol_framebghovered": "249.0, 66.0, 66.01, 102.0",
+            "mvthemecol_plothistogramhovered": "255.0, 153.0, 0.0, 255.0",
+            "mvthemecol_separatorhovered": "191.0, 24.71, 24.71, 200.0",
+            "mvthemecol_framebgactive": "255.0, 0.0, 0.01, 195.83",
+            "mvthemecol_tableheaderbg": "48.0, 48.0, 51.0, 255.0",
+            "mvthemecol_separatoractive": "191.0, 25.0, 25.01, 255.0",
+            "mvthemecol_titlebg": "10.0, 10.0, 10.0, 255.0",
+            "mvthemecol_tableborderstrong": "79.0, 79.0, 89.0, 255.0",
+            "mvthemecol_resizegrip": "249.0, 66.0, 66.01, 51.0",
+            "mvthemecol_titlebgactive": "122.0, 40.0, 40.0, 255.0",
+            "mvthemecol_tableborderlight": "67.67, 67.67, 76.07, 255.0",
+            "mvthemecol_resizegriphovered": "249.0, 66.0, 66.01, 170.0",
+            "mvthemecol_titlebgcollapsed": "0.0, 0.0, 0.0, 130.0",
+            "mvthemecol_tablerowbg": "0.0, 0.0, 0.0, 0.0",
+            "mvthemecol_resizegripactive": "236.68, 36.61, 36.62, 242.0",
+            "mvthemecol_menubarbg": "35.0, 35.0, 35.0, 255.0",
+            "mvthemecol_tablerowbgalt": "255.0, 255.0, 255.0, 15.0",
+            "mvthemecol_tab": "147.0, 45.0, 45.0, 219.0",
+            "mvthemecol_scrollbarbg": "5.0, 5.0, 5.0, 135.0",
+            "mvthemecol_textselectedbg": "249.0, 66.0, 114.53, 89.0",
+            "mvthemecol_tabhovered": "249.0, 66.0, 66.01, 204.0",
+            "mvthemecol_scrollbargrab": "79.0, 79.0, 79.0, 255.0",
+            "mvthemecol_dragdroptarget": "255.0, 255.0, 0.0, 229.0",
+            "mvthemecol_scrollbargrabhovered": "104.0, 104.0, 104.0, 255.0",
+            "mvthemecol_navhighlight": "249.0, 66.0, 66.01, 255.0",
+            "mvthemecol_scrollbargrabactive": "130.0, 130.0, 130.0, 255.0",
+            "mvthemecol_navwindowinghighlight": "255.0, 255.0, 255.0, 178.0",
+            "mvthemecol_checkmark": "249.0, 66.0, 66.01, 255.0",
+            "mvthemecol_navwindowingdimbg": "204.0, 204.0, 204.0, 51.0",
+            "mvthemecol_slidergrab": "224.0, 61.0, 61.01, 255.0",
+            "mvthemecol_modalwindowdimbg": "204.0, 204.0, 204.0, 89.0",
+        }
+        with open(self._themes_dir / "default.ini", "w") as f:
+            self.confParser.write(f, True)
+
+    # ----- color helpers -----
+
+    def _get_theme_color(self, theme_col: str) -> tuple[int, int, int, int]:
+        key = theme_col.lower()
+        itm = self.confParser["Theme"][key]
+        itm = itm.removeprefix("[").removesuffix("]")
+        parts = itm.split(",")
+        return (
+            int(float(parts[0].strip())),
+            int(float(parts[1].strip())),
+            int(float(parts[2].strip())),
+            int(float(parts[3].strip())),
+        )
+
+    # ----- menu -----
+
+    def _create_menu(self, parent):
+        if parent is not None:
+            dpg.add_menu_item(
+                label="Configure Theme",
+                callback=lambda: dpg.configure_item("editThemeWindow", show=True),
+                parent=parent,
+            )
+            dpg.add_menu_item(
+                label="Load Theme",
+                callback=lambda: dpg.configure_item("loadThemeFileSelector", show=True),
+                parent=parent,
+            )
+            dpg.add_menu_item(
+                label="Save Theme",
+                callback=lambda: dpg.configure_item("saveThemeFileSelector", show=True),
+                parent=parent,
+            )
+
+        self._load_theme_dialog()
+        self._save_theme_dialog()
+        self._edit_theme_window()
+
+    def _edit_theme_window(self):
+        if dpg.does_item_exist("editThemeWindow"):
+            dpg.delete_item("editThemeWindow")
+
+        with dpg.window(
+            tag="editThemeWindow",
+            show=False,
+            label="Theme Editor",
+            width=600,
+            height=700,
+            no_title_bar=False,
+        ):
+            with dpg.group(horizontal=True):
+                dpg.add_button(
+                    label="Close",
+                    callback=lambda: dpg.configure_item("editThemeWindow", show=False),
+                )
+                dpg.add_button(
+                    label="Load...",
+                    callback=lambda: dpg.configure_item("loadThemeFileSelector", show=True),
+                )
+                dpg.add_button(
+                    label="Save...",
+                    callback=lambda: dpg.configure_item("saveThemeFileSelector", show=True),
+                )
+            dpg.add_separator()
+
+            with dpg.child_window(autosize_x=True, autosize_y=True):
+                for color_name in THEME_COLORS:
+                    tag = f"colEdit{color_name}"
+                    try:
+                        default_val = self._get_theme_color(color_name)
+                    except Exception:
+                        default_val = (128, 128, 128, 255)
+
+                    dpg.add_color_edit(
+                        default_value=default_val,
+                        tag=tag,
+                        label=color_name.replace("mvThemeCol_", ""),
+                        callback=lambda s, a, u=color_name: self._on_color_changed(u),
+                        alpha_bar=True,
+                        no_inputs=False,
+                        width=300,
+                    )
+
+    def _on_color_changed(self, color_name: str):
+        """Called when user edits a color in the theme editor."""
+        tag = f"colEdit{color_name}"
+        val = dpg.get_value(tag)
+        if val:
+            # Update config
+            key = color_name.lower()
+            self.confParser["Theme"][key] = f"{val[0]}, {val[1]}, {val[2]}, {val[3]}"
+            # Rebuild and rebind theme
+            self._apply_theme()
+
+    def _load_theme_dialog(self):
+        try:
+            with dpg.file_dialog(
+                callback=lambda s, a: self._load_all(sent_file=a.get("file_path_name", "")),
+                directory_selector=False,
+                width=700,
+                height=400,
+                default_path=str(self._themes_dir),
+                default_filename="default.ini",
+                show=False,
+                tag="loadThemeFileSelector",
+                cancel_callback=_do_nothing,
+            ):
+                dpg.add_file_extension(".ini")
+        except Exception:
+            pass
+
+    def _save_theme_dialog(self):
+        try:
+            with dpg.file_dialog(
+                callback=lambda s, a: self._save_all(a),
+                directory_selector=False,
+                width=700,
+                height=400,
+                default_path=str(self._themes_dir),
+                default_filename="custom.ini",
+                show=False,
+                tag="saveThemeFileSelector",
+                cancel_callback=_do_nothing,
+            ):
+                dpg.add_file_extension(".ini")
+        except Exception:
+            pass
+
+    def _load_all(self, sent_file: str = ""):
+        if not sent_file:
+            return
+        try:
+            self.confParser.read(sent_file)
+            self._apply_theme()
+            # Rebuild editor to reflect loaded colors
+            self._edit_theme_window()
+        except Exception as e:
+            print(f"[EditThemePlugin] Load error: {e}")
+
+    def _save_all(self, file_data: dict):
+        if "file_path_name" not in file_data:
+            return
+        try:
+            # Read current colors from editor widgets
+            for color_name in THEME_COLORS:
+                tag = f"colEdit{color_name}"
+                if dpg.does_item_exist(tag):
+                    val = dpg.get_value(tag)
+                    key = color_name.lower()
+                    self.confParser["Theme"][key] = f"{val[0]}, {val[1]}, {val[2]}, {val[3]}"
+            with open(file_data["file_path_name"], "w") as f:
+                self.confParser.write(f, True)
+        except Exception as e:
+            print(f"[EditThemePlugin] Save error: {e}")

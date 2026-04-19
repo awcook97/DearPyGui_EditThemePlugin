@@ -1,165 +1,228 @@
+"""
+ChooseFontsPlugin — DearPyGui 2.x compatible font chooser.
+Adapted from https://github.com/awcook97/DearPyGui_EditThemePlugin
+Supports both Linux and Windows font directories.
+"""
 import dearpygui.dearpygui as dpg
 import os
-#import ctypes
-# Include the following code before showing the viewport/calling `dearpygui.dearpygui.show_viewport`.
-#ctypes.windll.shcore.SetProcessDpiAwareness(2)
-class ChooseFontsPlugin():
-
-	def __init__(self):
-		self.ignore = 'NO CUSTOM FONT, IGNORE'
-		self.font_registry = dpg.add_font_registry()
-		self.fontDict = dict()
-		self.create_folders()
-		self.create_font_library()
-		self.create_font_window()
-		self.create_font_menu()
-	
-	def create_folders(self):
-		if not os.path.exists('Fonts'):
-			os.mkdir('Fonts')
-		if not os.path.exists('Fonts/USERFONT'):
-			with open('Fonts/USERFONT', 'w') as f:
-				f.write(self.ignore)
-		if not os.path.exists('Fonts/USERSIZE'):
-			with open('Fonts/USERSIZE', 'w') as f:
-				f.write("16")
-		if not os.path.exists('Fonts/USERSCALE'):
-			with open('Fonts/USERSCALE', 'w') as f:
-				f.write("1")
+import platform
+import pathlib
 
 
-	def create_font_library(self):
-		with open('Fonts/USERFONT', 'r') as f:
-			self.userFont = f.read()
-			if not self.userFont: self.userFont = self.ignore
-		with open('Fonts/USERSIZE', 'r') as f:
-			try: self.userSize = int(f.read())
-			except: self.userSize = 16
-			if not self.userSize: self.userSize = 16
-		with open('Fonts/USERSCALE', 'r') as f:
-			try: self.userScale = float(f.read())
-			except: self.userScale = 1
-			if not self.userScale: self.userScale = 1
-		self.fontDict["YOUR FONTS"] = None
-		for filename in os.listdir('Fonts'):
-			if filename.endswith((".ttf","otf")):
-				self.fontDict[filename] = f"Fonts/{filename}"
-				with dpg.font(self.fontDict[filename], 16, parent=self.font_registry) as f:
-					dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
-					dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic)
-					dpg.add_font_range(0x0, 0xF)
-					dpg.add_font_range(0x00, 0xFF)
-					dpg.add_font_range(0x000, 0xFFF)
-					dpg.add_font_range(0x0000, 0xFFFF)
-				dpg.bind_font(f)
-		self.fontDict["WINDOWS FONTS"] = None
-		try:
-			for filename in os.listdir('C:\\Windows\\Fonts'):
-				if filename.endswith((".ttf","otf")):
-					self.fontDict[filename] = f"C:\\Windows\\Fonts\\{filename}"
-		except:
-			self.fontDict.pop("WINDOWS FONTS")
-		if len(self.fontDict) > 0:
-			if self.userFont in self.fontDict: 
-				dpg.add_font(self.fontDict[self.userFont], size=self.userSize, parent=self.font_registry, tag="fntCFPNewFont")
-				dpg.add_font_chars([0x2013,0x2014,0x2015,0x2017,0x2018,0x2019,0x201A,0x201B,0x201C,0x201D,0x201E,0x2020,0x2021,0x2022,0x2026,0x2030,0x2032,0x2033,0x2039,0x203A,0x203C,0x203E,0x2044,0x204A], parent="fntCFPNewFont")
-				dpg.bind_font("fntCFPNewFont")
+# Default font directories per platform
+def _get_system_font_dirs() -> list[str]:
+    dirs = []
+    system = platform.system()
+    if system == "Windows":
+        windir = os.environ.get("WINDIR", r"C:\Windows")
+        dirs.append(os.path.join(windir, "Fonts"))
+    elif system == "Linux":
+        # Standard Linux font directories
+        for d in [
+            "/usr/share/fonts",
+            "/usr/local/share/fonts",
+            os.path.expanduser("~/.local/share/fonts"),
+            os.path.expanduser("~/.fonts"),
+        ]:
+            if os.path.isdir(d):
+                dirs.append(d)
+    elif system == "Darwin":
+        dirs.extend(["/Library/Fonts", os.path.expanduser("~/Library/Fonts")])
+    return dirs
 
 
-	def create_font_window(self):
-		with dpg.window(label="Font Menu", width=400, height=400, show=False, tag="winCFPFontWindow", pos=(int(dpg.get_viewport_width()/2 - 200), int(dpg.get_viewport_height() / 2 - 200))):
-			with dpg.child_window(autosize_x=True, height=-120):
-				dpg.add_text("This is the font window. To use it, find your Fonts folder, and put in any .ttf or .otf font, and they will show up here.", wrap=0)
-				dpg.add_text("Whatever font you choose will be applied to the whole application. Sometimes it's best to close and reopen the application after setting a font, in case things get weird.", wrap=0)
-				dpg.add_combo(list(self.fontDict.keys()), label="Font Type", callback=lambda:self.build_fonts(), tag="cmbCFPFontType")
-				dpg.add_input_int(label="Size", default_value=self.userSize, callback=lambda:self.build_fonts(), tag="intCFPSize")
-				dpg.add_slider_float(default_value=self.userScale, label="Scale", callback=lambda:self.build_fonts(), tag="slideCFPFontScale", min_value=0.0, max_value=2.0, clamped=True)
-				with dpg.group(horizontal=True):
-					dpg.add_checkbox(label="Autosize?", tag="chkbxCFPAutosize", default_value=True)
-					dpg.add_button(label="Change Font", callback=lambda: self.btnBuild())
+def _walk_fonts(directory: str) -> dict[str, str]:
+    """Recursively find .ttf/.otf files, return {display_name: full_path}."""
+    found: dict[str, str] = {}
+    try:
+        for root, _dirs, files in os.walk(directory):
+            for f in sorted(files):
+                if f.lower().endswith((".ttf", ".otf")):
+                    found[f] = os.path.join(root, f)
+    except OSError:
+        pass
+    return found
 
-			with dpg.child_window(autosize_x=True, height=100):
-				dpg.add_text("the quick brown fox jumped over the lazy dog", wrap=0)
-				dpg.add_text("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG", wrap=0)
-			with dpg.group(horizontal=True):
-				dpg.add_button(label="Close", callback=lambda: dpg.configure_item("winCFPFontWindow", show=False))
-				dpg.add_button(label="Save", callback=lambda: self.save_fonts())
-				dpg.add_button(label="Reset to Default (Your Saves Won't Be Changed)", callback=lambda: dpg.bind_font("DEFAULT") and dpg.set_global_font_scale(1.0))
 
-	def create_font_menu(self):
-		self.font_menu = dpg.add_menu(label="Font")
-		dpg.add_menu_item(label="Edit", callback=lambda: dpg.configure_item("winCFPFontWindow", show=True), parent=self.font_menu)
-  
-	def btnBuild(self):
-		dpg.set_value("chkbxCFPAutosize", True)
-		self.build_fonts()
-		dpg.set_value("chkbxCFPAutosize", False)
-  
-	def build_fonts(self):
-		if not dpg.get_value("chkbxCFPAutosize"): return
-		self.userFont = dpg.get_value("cmbCFPFontType")
-		self.userSize= dpg.get_value("intCFPSize")
-		if self.userFont not in self.fontDict: return
-		if not self.fontDict[self.userFont]: return
-		try:
-			if dpg.does_item_exist("fntCFPNewFont"): dpg.delete_item("fntCFPNewFont")
-			newFont = dpg.add_font(self.fontDict[self.userFont], size=self.userSize, parent=self.font_registry, tag="fntCFPNewFont")
-			dpg.add_font_range_hint(dpg.mvFontRangeHint_Default, parent="fntCFPNewFont")
-			dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic, parent="fntCFPNewFont")
-			dpg.add_font_chars([0x2013,0x2014,0x2015,0x2017,0x2018,0x2019,0x201A,0x201B,0x201C,0x201D,0x201E,0x2020,0x2021,0x2022,0x2026,0x2030,0x2032,0x2033,0x2039,0x203A,0x203C,0x203E,0x2044,0x204A], parent="fntCFPNewFont")
-			dpg.add_font_range(0x0, 0xF, parent="fntCFPNewFont")
-			dpg.add_font_range(0x00, 0xFF, parent="fntCFPNewFont")
-			dpg.add_font_range(0x000, 0xFFF, parent="fntCFPNewFont")
-			dpg.add_font_range(0x0000, 0xFFFF, parent="fntCFPNewFont")
-			dpg.bind_font(newFont)
-			self.userScale = float(dpg.get_value("slideCFPFontScale"))
-			dpg.set_global_font_scale(self.userScale)
-		except Exception as e:
-			print(e)
+class ChooseFontsPlugin:
+    def __init__(self, menu_parent=None):
+        self.ignore = "NO CUSTOM FONT, IGNORE"
+        self.font_registry = dpg.add_font_registry()
+        self.fontDict: dict[str, str | None] = {}
+        self.userFont = self.ignore
+        self.userSize = 20
+        self.userScale = 1.0
 
-	def save_fonts(self):
-		with open('Fonts/USERFONT', 'w') as f:
-			f.write(str(self.userFont))
-		with open('Fonts/USERSIZE', 'w') as f:
-			f.write(str(self.userSize))
-		with open('Fonts/USERSCALE', 'w') as f:
-			f.write(str(self.userScale))
-		dpg.configure_item("winCFPFontWindow", show=False)
+        self._config_dir = pathlib.Path(__file__).parent.parent / "Fonts"
+        self._create_folders()
+        self._create_font_library()
+        self._create_font_window()
+        if menu_parent is not None:
+            self._create_font_menu(menu_parent)
 
-if __name__ == "__main__":
-	dpg.create_context()
-	dpg.create_viewport(title='Custom Title', width=1200, height=800)
-	#from EditThemePlugin import EditThemePlugin
-	dpg.show_debug()
-	try:
-		with dpg.window(tag="main2"):
-			with dpg.child_window():
-				dpg.add_text("This is text")
-				dpg.add_button(tag="This is a button", label="THIS IS A BUTTON")
-				dpg.add_checkbox(label="Check Box")
-				with dpg.child_window(autosize_x=True, autosize_y=True):
-					with dpg.tab_bar():
-						with dpg.tab(label="THIS IS A TAB"):
-							with dpg.tree_node(label="THIS IS A TREE NODE"):
-								randListOfStuff = ['THIS', 'IS', 'A', 'LIST']
-								dpg.add_combo(randListOfStuff)
-								dpg.add_listbox(randListOfStuff)
-		with dpg.viewport_menu_bar():
-			with dpg.menu(label="Tools"):
-				dpg.add_menu_item(label="Show About", 			callback=lambda:dpg.show_tool(dpg.mvTool_About))
-				dpg.add_menu_item(label="Show Metrics", 		callback=lambda:dpg.show_tool(dpg.mvTool_Metrics))
-				dpg.add_menu_item(label="Show Documentation", 	callback=lambda:dpg.show_tool(dpg.mvTool_Doc))
-				dpg.add_menu_item(label="Show Debug", 			callback=lambda:dpg.show_tool(dpg.mvTool_Debug))
-				dpg.add_menu_item(label="Show Style Editor", 	callback=lambda:dpg.show_tool(dpg.mvTool_Style))
-				dpg.add_menu_item(label="Show Font Manager", 	callback=lambda:dpg.show_tool(dpg.mvTool_Font))
-				dpg.add_menu_item(label="Show Item Registry", 	callback=lambda:dpg.show_tool(dpg.mvTool_ItemRegistry))
-			#myEditTheme = EditThemePlugin()
-			myFonts = ChooseFontsPlugin()
-	except:
-		pass
-	dpg.set_primary_window("main2", True)
-	dpg.setup_dearpygui()
+    # ----- config persistence -----
 
-	dpg.show_viewport()
-	dpg.start_dearpygui()
-	dpg.destroy_context()
+    def _create_folders(self):
+        self._config_dir.mkdir(parents=True, exist_ok=True)
+        uf = self._config_dir / "USERFONT"
+        if not uf.exists():
+            uf.write_text(self.ignore, encoding="utf-8")
+        us = self._config_dir / "USERSIZE"
+        if not us.exists():
+            us.write_text("20", encoding="utf-8")
+        usc = self._config_dir / "USERSCALE"
+        if not usc.exists():
+            usc.write_text("1", encoding="utf-8")
+
+    def _create_font_library(self):
+        try:
+            self.userFont = (self._config_dir / "USERFONT").read_text("utf-8").strip() or self.ignore
+        except Exception:
+            self.userFont = self.ignore
+        try:
+            self.userSize = int((self._config_dir / "USERSIZE").read_text("utf-8").strip())
+        except Exception:
+            self.userSize = 20
+        try:
+            self.userScale = float((self._config_dir / "USERSCALE").read_text("utf-8").strip())
+        except Exception:
+            self.userScale = 1.0
+
+        # Local fonts
+        self.fontDict["── YOUR FONTS ──"] = None
+        local_dir = str(self._config_dir)
+        for fname in sorted(os.listdir(local_dir)):
+            if fname.lower().endswith((".ttf", ".otf")):
+                full = os.path.join(local_dir, fname)
+                self.fontDict[fname] = full
+
+        # System fonts
+        for sys_dir in _get_system_font_dirs():
+            label = f"── {os.path.basename(sys_dir).upper()} ──"
+            if label not in self.fontDict:
+                self.fontDict[label] = None
+            sys_fonts = _walk_fonts(sys_dir)
+            self.fontDict.update(sys_fonts)
+
+        # Apply saved font if available
+        if self.userFont in self.fontDict and self.fontDict[self.userFont]:
+            try:
+                fnt = dpg.add_font(
+                    file=str(self.fontDict[self.userFont]),
+                    size=self.userSize,
+                    parent=self.font_registry,
+                    tag="fntCFPNewFont",
+                )
+                dpg.add_font_range_hint(dpg.mvFontRangeHint_Default, parent="fntCFPNewFont")
+                dpg.bind_font(fnt)
+                dpg.set_global_font_scale(self.userScale)
+            except Exception as e:
+                print(f"[ChooseFontsPlugin] Error loading saved font: {e}")
+
+    # ----- GUI -----
+
+    def _create_font_window(self):
+        with dpg.window(
+            label="Font Settings",
+            width=500,
+            height=400,
+            show=False,
+            tag="winCFPFontWindow",
+        ):
+            with dpg.child_window(autosize_x=True, height=-120):
+                dpg.add_text(
+                    "Choose a font from your local Fonts/ folder or system fonts.",
+                    wrap=0,
+                )
+                dpg.add_text(
+                    "Click 'Change Font' to apply. Click 'Save' to persist across sessions.",
+                    wrap=0,
+                    color=(160, 160, 160),
+                )
+                dpg.add_separator()
+                dpg.add_combo(
+                    list(self.fontDict.keys()),
+                    label="Font",
+                    callback=lambda: self.build_fonts(),
+                    tag="cmbCFPFontType",
+                    width=-1,
+                )
+                dpg.add_input_int(
+                    label="Size",
+                    default_value=self.userSize,
+                    tag="intCFPSize",
+                    width=150,
+                )
+                dpg.add_slider_float(
+                    default_value=self.userScale,
+                    label="Scale",
+                    tag="slideCFPFontScale",
+                    min_value=0.5,
+                    max_value=3.0,
+                    clamped=True,
+                    width=200,
+                )
+                with dpg.group(horizontal=True):
+                    dpg.add_checkbox(label="Auto-preview?", tag="chkbxCFPAutosize", default_value=True)
+                    dpg.add_button(label="Change Font", callback=lambda: self.btnBuild())
+
+            with dpg.child_window(autosize_x=True, height=80):
+                dpg.add_text("the quick brown fox jumped over the lazy dog", wrap=0)
+                dpg.add_text("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG", wrap=0)
+                dpg.add_text("0123456789  +0x00B4  /*0xDEAD*/", wrap=0)
+
+            with dpg.group(horizontal=True):
+                dpg.add_button(
+                    label="Close",
+                    callback=lambda: dpg.configure_item("winCFPFontWindow", show=False),
+                )
+                dpg.add_button(label="Save", callback=lambda: self.save_fonts())
+                dpg.add_button(
+                    label="Reset to Default",
+                    callback=lambda: (dpg.bind_font(""), dpg.set_global_font_scale(1.0)),
+                )
+
+    def _create_font_menu(self, parent):
+        dpg.add_menu_item(
+            label="Font Settings...",
+            callback=lambda: dpg.configure_item("winCFPFontWindow", show=True),
+            parent=parent,
+        )
+
+    # ----- font building -----
+
+    def btnBuild(self):
+        dpg.set_value("chkbxCFPAutosize", True)
+        self.build_fonts()
+        dpg.set_value("chkbxCFPAutosize", False)
+
+    def build_fonts(self):
+        if not dpg.get_value("chkbxCFPAutosize"):
+            return
+        self.userFont = dpg.get_value("cmbCFPFontType")
+        self.userSize = dpg.get_value("intCFPSize")
+        if self.userFont not in self.fontDict:
+            return
+        if not self.fontDict[self.userFont]:
+            return
+        try:
+            if dpg.does_item_exist("fntCFPNewFont"):
+                dpg.delete_item("fntCFPNewFont")
+            fnt = dpg.add_font(
+                file=str(self.fontDict[self.userFont]),
+                size=self.userSize,
+                parent=self.font_registry,
+                tag="fntCFPNewFont",
+            )
+            dpg.add_font_range_hint(dpg.mvFontRangeHint_Default, parent="fntCFPNewFont")
+            dpg.bind_font(fnt)
+            self.userScale = float(dpg.get_value("slideCFPFontScale"))
+            dpg.set_global_font_scale(self.userScale)
+        except Exception as e:
+            print(f"[ChooseFontsPlugin] Error: {e}")
+
+    def save_fonts(self):
+        (self._config_dir / "USERFONT").write_text(str(self.userFont), encoding="utf-8")
+        (self._config_dir / "USERSIZE").write_text(str(self.userSize), encoding="utf-8")
+        (self._config_dir / "USERSCALE").write_text(str(self.userScale), encoding="utf-8")
+        dpg.configure_item("winCFPFontWindow", show=False)
